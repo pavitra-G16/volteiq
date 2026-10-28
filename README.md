@@ -81,7 +81,7 @@ There is a unique constraint on `(owner_id, period_start, period_end)` plus an o
 
 ## Local setup
 
-Requirements: Python 3.11+, Node.js 20.9+, npm, and the OS-level Tesseract executable for OCR. Install Tesseract using the package manager for your operating system. The production API container installs Tesseract, but this configuration has not yet been deployed or verified on Render.
+Requirements: Python 3.11+, Node.js 20.9+, npm, and the OS-level Tesseract executable for OCR. Install Tesseract using the package manager for your operating system. The deployed Render API container installs Tesseract; live health confirms the executable is available, but real-image OCR accuracy remains unverified.
 
 From the project root, start the API:
 
@@ -108,9 +108,9 @@ For a production-mode frontend check, run `npm run build` and then `npm run star
 
 ## Render deployment preparation
 
-`render.yaml` describes separate Next.js and FastAPI web services plus a Render Postgres database. The API uses `backend/Dockerfile`, which installs the system Tesseract binary; the dashboard is built and started with production Next.js commands. The manifest configures health checks and the frontend/API origins. Its service names imply `https://volteiq-web.onrender.com` and `https://volteiq-api.onrender.com`; confirm the actual assigned service URLs in Render and update `CORS_ORIGINS` / `NEXT_PUBLIC_API_BASE_URL` if Render assigns different URLs.
+`render.yaml` describes separate Next.js and FastAPI web services plus a Render Postgres database. The API uses `backend/Dockerfile`, which installs the system Tesseract binary; the dashboard is built and started with production Next.js commands. The manifest configures health checks and the frontend/API origins. The deployed service URLs are `https://volteiq-web.onrender.com` and `https://volteiq-api.onrender.com`; the manifest configures matching `CORS_ORIGINS` and `NEXT_PUBLIC_API_BASE_URL`.
 
-To deploy, first publish this source to the intended GitHub repository, then create a Render Blueprint from that repository and review the resources and plan before applying it. Render needs access to the repository. After provisioning, confirm API `/api/v1/health`, dashboard `/`, browser requests to the API, and OCR availability before calling the deployment live. The local source folder currently has no Git metadata and no Render connection, so no public URL or live deployment has been verified.
+The live services are available at https://volteiq-web.onrender.com and https://volteiq-api.onrender.com. Render serves the Next.js landing page/dashboard, FastAPI API and PostgreSQL database. The dashboard has been verified making successful requests to saved bills, actions and analytics endpoints; the API health response reports database_available and ocr_available as true. Real-bill OCR has not been tested. Updates to the connected main branch trigger Render deployments. Render free services can spin down while idle; free Postgres expires after 30 days and has no backups, so use only non-sensitive demo records.
 
 The manifest currently selects Render's free web services and free Postgres. Free web service filesystems are ephemeral, so SQLite must not be used for hosted records. The manifest wires the API to Postgres; Render's free Postgres currently expires 30 days after creation and has no backups. It is a short-lived hackathon demo option only, not durable production storage. Upgrade to a paid Postgres plan before long-term use. Free web services can spin down while idle. See Render's [free instance limitations](https://render.com/docs/free), [Next.js deployment guide](https://render.com/docs/deploy-nextjs-app), and [Blueprint reference](https://render.com/docs/blueprint-spec).
 
@@ -203,12 +203,12 @@ Backend tests cover tariff boundaries and invalid inputs, Decimal rounding, reco
 
 ## Security, limitations and deployment status
 
-- **OCR:** Tesseract is an OS dependency. OCR extraction is heuristic and must be checked by a person. In the inspected workspace Tesseract is absent and no real bill image exists; real-image OCR has not been verified.
-- **Authentication:** The demo has a shared owner ID but no login or per-user identity. CORS is not authentication. Keep it on localhost; do not publish it with household records exposed.
+- **OCR:** Tesseract is an OS dependency. OCR extraction is heuristic and must be checked by a person. The Render container installs Tesseract and the live health endpoint reports the OCR executable available. No real electricity-bill image has been tested, so extraction accuracy is unverified.
+- **Authentication:** The public demo uses a shared owner ID but no login or per-user identity. CORS is not authentication. Do not upload private household bills: anyone who reaches the public API can access the shared demo records.
 - **Tariffs and solar:** Gujarat tariff values are illustrative. No official current tariff, irradiation, market-price, export-credit or subsidy integrations exist.
 - **Database operations:** `create_all` is used; no Alembic migrations, backups, retention policy or deletion workflow are implemented.
 - **Runtime:** OCR is synchronous inside the upload endpoint despite its timeout. High-concurrency deployments should move image processing to a bounded worker queue and add request/rate limits.
-- **Deployment:** No cloud deployment, production authentication, observability stack, domain, or public repository has been verified or created.
+- **Deployment:** Render deployment is live: the public homepage, dashboard, API health endpoint, and persisted PostgreSQL connection have been verified. Production authentication, custom domain, and observability are not implemented.
 - **Repository:** The supplied source directory currently has no `.git` metadata, so commit history and clean/dirty Git status cannot be inspected here.
 
 ## Scalability considerations and roadmap
