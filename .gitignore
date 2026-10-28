@@ -1,0 +1,41 @@
+# Python environments, caches and bytecode
+.venv/
+venv/
+env/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+*.egg-info/
+
+# JavaScript dependencies and build/test outputs
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/.npm-cache/
+dist/
+build/
+coverage/
+htmlcov/
+.coverage*
+*.tsbuildinfo
+.vercel/
+
+# Local databases and transient SQLite journal files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Local environment and secrets; keep documented templates
+.env
+.env.*
+!.env.example
+!**/.env.example
+!frontend/.env.local.example
+
+# OS/editor noise
+.DS_Store
+Thumbs.db

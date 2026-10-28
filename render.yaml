@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: volteiq-api
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: volteiq-db
+          property: connectionString
+      - key: DEMO_OWNER_ID
+        value: demo
+      - key: TESSERACT_CMD
+        value: /usr/bin/tesseract
+      - key: CORS_ORIGINS
+        value: https://volteiq-web.onrender.com
+
+  - type: web
+    name: volteiq-web
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: ./frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 22.17.0
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://volteiq-api.onrender.com
+
+databases:
+  - name: volteiq-db
+    databaseName: volteiq
+    plan: free
+    region: oregon
